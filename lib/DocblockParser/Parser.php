@@ -132,9 +132,14 @@ final class Parser
         $type = $variable = null;
         if ($this->ifType()) {
             $type = $this->parseTypes();
-        }
-        if ($this->tokens->ifNextIs(Token::T_VARIABLE)) {
+            if ($this->tokens->ifNextIs(Token::T_VARIABLE)) {
+                $variable = $this->parseVariable();
+            }
+        } else if ($this->tokens->if(Token::T_VARIABLE)) {
             $variable = $this->parseVariable();
+            if ($this->ifNextType()) {
+                $type = $this->parseTypes();
+            }
         }
 
         return new VarTag($tag, $type, $variable);
@@ -574,6 +579,16 @@ final class Parser
             $this->tokens->if(Token::T_INTEGER) ||
             $this->tokens->if(Token::T_FLOAT) ||
             $this->tokens->if(Token::T_PAREN_OPEN);
+    }
+
+    private function ifNextType(): bool
+    {
+        return $this->tokens->ifNextIs(Token::T_LABEL) ||
+            $this->tokens->ifNextIs(Token::T_NULLABLE) ||
+            $this->tokens->ifNextIs(Token::T_QUOTED_STRING) ||
+            $this->tokens->ifNextIs(Token::T_INTEGER) ||
+            $this->tokens->ifNextIs(Token::T_FLOAT) ||
+            $this->tokens->ifNextIs(Token::T_PAREN_OPEN);
     }
 
     private function parseValue(): ?ValueNode
